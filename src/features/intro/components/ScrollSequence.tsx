@@ -1,15 +1,67 @@
 'use client'
 
-import { useEffect, useRef, useState, RefObject } from 'react'
+import { useEffect, useRef, useState, RefObject, useCallback } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import TextType from '@/features/intro/components/TextType'
-import VariableFontAndCursor from '@/components/fancy/text/variable-font-and-cursor'
+import MultiQuoteTyping from '@/features/intro/components/MultiQuoteTyping'
+import { useMousePosition } from '@/hooks/use-mouse-position'
 
-export default function ScrollSequence() {
+interface ScrollSequenceProps {
+	onBlackSectionExpanded?: () => void
+	onTypingCompleted?: () => void
+}
+
+export default function ScrollSequence({ 
+	onBlackSectionExpanded, 
+	onTypingCompleted 
+}: ScrollSequenceProps) {
 	const sectionRef = useRef<HTMLElement>(null)
 	const blackSectionRef = useRef<HTMLDivElement>(null)
 	const [typing, setTyping] = useState(false)
+	const [isMobile, setIsMobile] = useState(false)
+	const { x, y } = useMousePosition(blackSectionRef as RefObject<HTMLElement | null>)
+
+	// 타이핑 시작을 한 번만 트리거하기 위한 가드
+	const hasStartedTypingRef = useRef(false)
+	const startTypingOnce = useCallback(() => {
+		if (hasStartedTypingRef.current) return
+		hasStartedTypingRef.current = true
+		setTyping(true)
+		onBlackSectionExpanded?.()
+	}, [onBlackSectionExpanded])
+
+	// 모바일 감지
+	useEffect(() => {
+		const checkMobile = () => {
+			setIsMobile(window.innerWidth < 768)
+		}
+		
+		checkMobile()
+		window.addEventListener('resize', checkMobile)
+		return () => window.removeEventListener('resize', checkMobile)
+	}, [])
+
+	// 모든 타이핑이 완료된 후 부모 상태 변경
+	useEffect(() => {
+		if (!typing) return
+		
+		// 7개 명언이 모두 타이핑되는 시간 계산 (가장 긴 지연시간 + 타이핑 시간)
+		const maxDelay = 1200 // 가장 긴 initialDelay
+		const maxTypingTime = 8000 // 예상 최대 타이핑 시간
+		const totalTime = maxDelay + maxTypingTime + 2000 // 여유시간 추가
+		
+		const timer = setTimeout(() => {
+			// ScrollTrigger 정리 및 새로고침
+			ScrollTrigger.killAll()
+			ScrollTrigger.refresh()
+			// 다음 프레임에서 상태 변경하여 렌더링 충돌 방지
+			requestAnimationFrame(() => {
+				onTypingCompleted?.()
+			})
+		}, totalTime)
+		
+		return () => clearTimeout(timer)
+	}, [typing, onTypingCompleted])
 
 	useEffect(() => {
 		gsap.registerPlugin(ScrollTrigger)
@@ -19,110 +71,87 @@ export default function ScrollSequence() {
 				scrollTrigger: {
 					trigger: sectionRef.current,
 					start: 'top top',
-					end: '+=250%',
+					end: '+=150%', // 스크롤 범위 축소 (검은 섹션 확장까지만)
 					scrub: prefersReduced ? false : 1,
-					pin: true
+					pin: true,
 				}
 			})
-			// 1) 초기 상태: 100% / 0% (검은 섹션 완전 접힘, 잔상 방지)
-			gsap.set('.split', { gridTemplateColumns: '100% 0%' })
-			// 2) 스크롤 진행에 따라 30% : 70%로 확장
-			tl.to('.split', { gridTemplateColumns: '30% 70%', ease: 'none', duration: 1 })
-			// 3) 확장 완료 시 타이핑 동시 시작
-			tl.add(() => setTyping(true))
+
+			if (isMobile) {
+				// 모바일: 아래에서 위로 검은색 섹션 나타남 (1:9 비율)
+				gsap.set('.split', { gridTemplateRows: '100% 0%' })
+				gsap.set('.logo', { width: '200px' }) // 초기 큰 크기
+				tl.to('.split', { gridTemplateRows: '10% 90%', ease: 'none', duration: 1 })
+				tl.to('.logo', { width: '80px', ease: 'none', duration: 1 }, 0) // 동시에 로고 크기 축소
+				// 확장 완료 직후 타이핑 및 스크롤 락 시작
+				tl.add(() => startTypingOnce())
+			} else {
+				// 데스크톱: 오른쪽에서 왼쪽으로 검은색 섹션 나타남
+				gsap.set('.split', { gridTemplateColumns: '100% 0%' })
+				gsap.set('.logo', { width: '300px' }) // 초기 큰 크기
+				tl.to('.split', { gridTemplateColumns: '30% 70%', ease: 'none', duration: 1 })
+				tl.to('.logo', { width: '200px', ease: 'none', duration: 1 }, 0) // 동시에 로고 크기 축소
+				// 확장 완료 직후 타이핑 및 스크롤 락 시작
+				tl.add(() => startTypingOnce())
+			}
 		}, sectionRef)
 		return () => ctx.revert()
-	}, [])
+	}, [isMobile, startTypingOnce])
 
 	return (
 		<section ref={sectionRef} className="h-screen">
-			<div className="split grid items-center h-screen">
-				<div className="left flex items-center justify-center p-[clamp(1rem,4vw,3rem)]">
-					<img src="/logo.png" alt="BIBO" className="w-[200px] h-auto" />
+			<div className={`split grid h-screen ${isMobile ? 'grid-rows-2' : 'grid-cols-2 items-center'}`}>
+				<div className={`${isMobile ? 'order-1 flex items-center justify-center px-4 py-2' : 'left flex items-center justify-center p-[clamp(1rem,4vw,3rem)]'}`}>
+					<img 
+						src="/logo.png" 
+						alt="BIBO" 
+						className="logo h-auto" 
+					/>
 				</div>
-				<div ref={blackSectionRef} className="right h-full w-full bg-black text-white grid place-items-center overflow-hidden cursor-none">
-					<VariableFontAndCursor
-						containerRef={blackSectionRef as RefObject<HTMLElement | null>}
-						fontVariationMapping={{
-							y: { name: 'wght', min: 200, max: 800 },
-							x: { name: 'slnt', min: 0, max: -15 },
+				<div ref={blackSectionRef} className={`${isMobile ? 'order-2' : 'right'} h-full w-full bg-black text-white flex items-start justify-start overflow-hidden cursor-none relative`}>
+					{typing && (
+						<MultiQuoteTyping
+							containerRef={blackSectionRef as RefObject<HTMLElement | null>}
+							className="w-full h-full flex items-start justify-start pt-[clamp(4rem,8vh,6rem)] pl-[clamp(2rem,6vw,4rem)]"
+						/>
+					)}
+					
+					{/* 마우스/터치 커서 효과 */}
+					<div
+						className="absolute w-px h-full bg-white/20 top-0 -translate-x-1/2 pointer-events-none"
+						style={{
+							left: `${x}px`,
 						}}
-						className="px-[clamp(1rem,4vw,3rem)] max-w-[120ch] space-y-[clamp(3rem,7vh,6rem)]"
-					>
-						{typing && (
-							<>
-								<TextType
-									text={"Failure is an option here.\nIf things are not failing, you are not innovating enough."}
-									typingSpeed={37.5}
-									pauseDuration={1200}
-									loop={false}
-									showCursor
-									stopAtEnd
-									className="tracking-tight text-[clamp(0.8rem,1.4vw,1.2rem)] leading-snug"
-								/>
-								<TextType
-									text={"I'd rather be optimistic and wrong than pessimistic and right."}
-									typingSpeed={37.5}
-									pauseDuration={1200}
-									loop={false}
-									showCursor
-									stopAtEnd
-									className="tracking-tight text-[clamp(0.8rem,1.4vw,1.2rem)] leading-snug"
-								/>
-								<TextType
-									text={"Your time is limited, so don't waste it living someone else's life."}
-									typingSpeed={37.5}
-									pauseDuration={1200}
-									loop={false}
-									showCursor
-									stopAtEnd
-									className="tracking-tight text-[clamp(0.8rem,1.4vw,1.2rem)] leading-snug"
-								/>
-								<TextType
-									text={"Stay hungry, stay foolish."}
-									typingSpeed={37.5}
-									pauseDuration={1200}
-									loop={false}
-									showCursor
-									stopAtEnd
-									className="tracking-tight text-[clamp(0.8rem,1.4vw,1.2rem)] leading-snug"
-								/>
-								<TextType
-									text={"The biggest risk is not taking any risk."}
-									typingSpeed={37.5}
-									pauseDuration={1200}
-									loop={false}
-									showCursor
-									stopAtEnd
-									className="tracking-tight text-[clamp(0.8rem,1.4vw,1.2rem)] leading-snug"
-								/>
-							
-									<TextType
-										text={"The people who are crazy enough to think \nthey can change the world are the ones who do."}
-										typingSpeed={37.5}
-										pauseDuration={1200}
-										loop={false}
-										showCursor
-										stopAtEnd
-										className="tracking-tight text-[clamp(0.8rem,1.4vw,1.2rem)] leading-snug"
-									/>
-								
-								<TextType
-									text={"The future doesn't wait for anyone. You have to invent it."}
-									typingSpeed={37.5}
-									pauseDuration={1200}
-									loop={false}
-									showCursor
-									stopAtEnd
-									className="tracking-tight text-[clamp(0.8rem,1.4vw,1.2rem)] leading-snug"
-								/>
-							</>
-						)}
-					</VariableFontAndCursor>
+					/>
+					<div
+						className="absolute w-full h-px bg-white/20 left-0 -translate-y-1/2 pointer-events-none"
+						style={{
+							top: `${y}px`,
+						}}
+					/>
+					<div
+						className={`absolute bg-white -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none ${
+							isMobile ? 'w-3 h-3' : 'w-2 h-2'
+						}`}
+						style={{
+							top: `${y}px`,
+							left: `${x}px`,
+						}}
+					/>
+					
+					{/* 좌표 표시 - 데스크톱에서만 */}
+					{!isMobile && (
+						<div className="absolute bottom-8 left-8 flex flex-col font-azeret-mono">
+							<span className="text-xs text-white/60 tabular-nums">
+								x: {Math.round(x)}
+							</span>
+							<span className="text-xs text-white/60 tabular-nums">
+								y: {Math.round(y)}
+							</span>
+						</div>
+					)}
 				</div>
 			</div>
 		</section>
 	)
 }
-
-

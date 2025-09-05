@@ -98,20 +98,20 @@ const AnimatedPathText = ({
   // Use React's useId for consistent server/client rendering
   const id = pathId || `animated-path-${reactId}`
 
-  // Only use scroll hooks when animationType is "scroll"
-  const scrollData = animationType === "scroll" ? useScroll({
+  // Always call hooks but conditionally use the data
+  const scrollData = useScroll({
     container: scrollContainer || container,
     offset: scrollOffset,
-  }) : null
+  })
 
-  const t = scrollData ? useTransform(scrollData.scrollYProgress, [0, 1], scrollTransformValues) : null
+  const t = useTransform(scrollData.scrollYProgress, [0, 1], scrollTransformValues)
 
   useEffect(() => {
     // Only handle scroll changes when animationType is "scroll"
-    if (animationType !== "scroll" || !scrollData || !t) return
+    if (animationType !== "scroll") return
 
     // Re-initialize scroll handler when container ref changes
-    const handleChange = (e: number) => {
+    const handleChange = (value: number) => {
       textPathRefs.current.forEach((textPath) => {
         if (textPath) {
           textPath.setAttribute("startOffset", `${t.get()}%`)

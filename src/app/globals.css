@@ -1,4 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Flex:wght@100..900&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -119,6 +122,25 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  
+  .font-inter {
+    font-family: 'Inter', sans-serif;
+    font-variation-settings: 'wght' 400, 'slnt' 0;
+  }
+  
+  .font-overused-grotesk {
+    font-family: 'Roboto Flex', sans-serif;
+    font-variation-settings: 'wght' 400, 'slnt' 0;
+  }
+  
+  .font-roboto-flex {
+    font-family: 'Roboto Flex', sans-serif;
+    font-variation-settings: 'wght' 400, 'slnt' 0, 'wdth' 100, 'opsz' 14;
+  }
+  
+  .font-azeret-mono {
     font-family: 'JetBrains Mono', monospace;
   }
 }
