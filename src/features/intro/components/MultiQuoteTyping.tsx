@@ -1,12 +1,13 @@
 'use client'
 
 import { RefObject } from 'react'
-import TextType from '@/features/intro/components/TextType'
+import ScrollBasedText from '@/features/intro/components/ScrollBasedText'
 import VariableFontAndCursor from '@/components/fancy/text/variable-font-and-cursor'
 
 interface MultiQuoteTypingProps {
 	containerRef: RefObject<HTMLElement | null>
 	className?: string
+	scrollProgress?: number
 }
 
 const QUOTES = [
@@ -19,20 +20,22 @@ const QUOTES = [
 	"The future doesn't wait for anyone. You have to invent it.",
 ]
 
-// 각 명언별로 다른 시작 지연시간과 타이핑 속도 설정
+// 각 명언별로 다른 시작 지연과 지속 시간 설정 (스크롤 진행률 기준)
+// 스크롤 범위를 늘리고 더 천천히 타이핑되도록 조정
 const QUOTE_CONFIGS = [
-	{ initialDelay: 0, typingSpeed: 45, pauseDuration: 2000 },
-	{ initialDelay: 200, typingSpeed: 40, pauseDuration: 1800 },
-	{ initialDelay: 400, typingSpeed: 50, pauseDuration: 2200 },
-	{ initialDelay: 600, typingSpeed: 35, pauseDuration: 1900 },
-	{ initialDelay: 800, typingSpeed: 55, pauseDuration: 2100 },
-	{ initialDelay: 1000, typingSpeed: 42, pauseDuration: 1950 },
-	{ initialDelay: 1200, typingSpeed: 48, pauseDuration: 2050 },
+	{ delay: 0.05, duration: 0.9 }, // 더 일찍 시작하고 더 오래 진행 (속도 절반)
+	{ delay: 0.1, duration: 0.85 },
+	{ delay: 0.15, duration: 0.8 },
+	{ delay: 0.2, duration: 0.75 },
+	{ delay: 0.25, duration: 0.7 },
+	{ delay: 0.3, duration: 0.65 },
+	{ delay: 0.35, duration: 0.6 },
 ]
 
 export default function MultiQuoteTyping({ 
 	containerRef, 
-	className = '' 
+	className = '',
+	scrollProgress = 0
 }: MultiQuoteTypingProps) {
 	return (
 		<VariableFontAndCursor
@@ -50,14 +53,12 @@ export default function MultiQuoteTyping({
 							key={index}
 							className="flex items-start"
 						>
-							<TextType
+							<ScrollBasedText
 								text={quote}
-								typingSpeed={config.typingSpeed}
-								initialDelay={config.initialDelay}
-								pauseDuration={config.pauseDuration}
-								loop={false}
+								scrollProgress={scrollProgress}
+								delay={config.delay}
+								duration={config.duration}
 								showCursor
-								stopAtEnd
 								className="tracking-wider text-[clamp(1rem,1.8vw,1.6rem)] leading-relaxed"
 							/>
 						</div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useMemo, RefObject } from 'react'
+import { useMemo, RefObject } from 'react'
 import { motion } from 'motion/react'
 import { useMousePosition } from '@/hooks/use-mouse-position'
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, memo, useCallback } from "react"
+import { useState, memo, useMemo, useEffect } from "react"
 import { debounce } from "lodash"
 import { AnimationOptions, motion, stagger, useAnimate } from "motion/react"
 
@@ -39,34 +39,32 @@ const VariableFontHoverByLetter = memo(({
     }),
   })
 
-  const hoverStart = useCallback(debounce(
-    () => {
-      if (isHovered) return
-      setIsHovered(true)
+  // Create stable debounced handlers and cancel on unmount to avoid leaks
+  const hoverStart = useMemo(() => debounce(() => {
+    if (isHovered) return
+    setIsHovered(true)
+    animate(
+      ".letter",
+      { fontVariationSettings: toFontVariationSettings },
+      mergeTransition(transition)
+    )
+  }, 50, { leading: true, trailing: true }), [isHovered, toFontVariationSettings, transition, animate])
 
-      animate(
-        ".letter",
-        { fontVariationSettings: toFontVariationSettings },
-        mergeTransition(transition)
-      )
-    },
-    50,
-    { leading: true, trailing: true }
-  ), [isHovered, toFontVariationSettings, transition, animate])
+  const hoverEnd = useMemo(() => debounce(() => {
+    setIsHovered(false)
+    animate(
+      ".letter",
+      { fontVariationSettings: fromFontVariationSettings },
+      mergeTransition(transition)
+    )
+  }, 50, { leading: true, trailing: true }), [fromFontVariationSettings, transition, animate])
 
-  const hoverEnd = useCallback(debounce(
-    () => {
-      setIsHovered(false)
-
-      animate(
-        ".letter",
-        { fontVariationSettings: fromFontVariationSettings },
-        mergeTransition(transition)
-      )
-    },
-    50,
-    { leading: true, trailing: true }
-  ), [fromFontVariationSettings, transition, animate])
+  useEffect(() => {
+    return () => {
+      hoverStart.cancel()
+      hoverEnd.cancel()
+    }
+  }, [hoverStart, hoverEnd])
 
   return (
     <motion.span

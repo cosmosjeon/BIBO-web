@@ -1,34 +1,17 @@
 'use client'
 
-import { useEffect, useRef, useState, RefObject, useCallback } from 'react'
+import { useEffect, useRef, useState, RefObject } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import MultiQuoteTyping from '@/features/intro/components/MultiQuoteTyping'
 import { useMousePosition } from '@/hooks/use-mouse-position'
 
-interface ScrollSequenceProps {
-	onBlackSectionExpanded?: () => void
-	onTypingCompleted?: () => void
-}
-
-export default function ScrollSequence({ 
-	onBlackSectionExpanded, 
-	onTypingCompleted 
-}: ScrollSequenceProps) {
+export default function ScrollSequence() {
 	const sectionRef = useRef<HTMLElement>(null)
 	const blackSectionRef = useRef<HTMLDivElement>(null)
-	const [typing, setTyping] = useState(false)
 	const [isMobile, setIsMobile] = useState(false)
+	const [scrollProgress, setScrollProgress] = useState(0)
 	const { x, y } = useMousePosition(blackSectionRef as RefObject<HTMLElement | null>)
-
-	// 타이핑 시작을 한 번만 트리거하기 위한 가드
-	const hasStartedTypingRef = useRef(false)
-	const startTypingOnce = useCallback(() => {
-		if (hasStartedTypingRef.current) return
-		hasStartedTypingRef.current = true
-		setTyping(true)
-		onBlackSectionExpanded?.()
-	}, [onBlackSectionExpanded])
 
 	// 모바일 감지
 	useEffect(() => {
@@ -41,28 +24,6 @@ export default function ScrollSequence({
 		return () => window.removeEventListener('resize', checkMobile)
 	}, [])
 
-	// 모든 타이핑이 완료된 후 부모 상태 변경
-	useEffect(() => {
-		if (!typing) return
-		
-		// 7개 명언이 모두 타이핑되는 시간 계산 (가장 긴 지연시간 + 타이핑 시간)
-		const maxDelay = 1200 // 가장 긴 initialDelay
-		const maxTypingTime = 8000 // 예상 최대 타이핑 시간
-		const totalTime = maxDelay + maxTypingTime + 2000 // 여유시간 추가
-		
-		const timer = setTimeout(() => {
-			// ScrollTrigger 정리 및 새로고침
-			ScrollTrigger.killAll()
-			ScrollTrigger.refresh()
-			// 다음 프레임에서 상태 변경하여 렌더링 충돌 방지
-			requestAnimationFrame(() => {
-				onTypingCompleted?.()
-			})
-		}, totalTime)
-		
-		return () => clearTimeout(timer)
-	}, [typing, onTypingCompleted])
-
 	useEffect(() => {
 		gsap.registerPlugin(ScrollTrigger)
 		const ctx = gsap.context(() => {
@@ -71,32 +32,56 @@ export default function ScrollSequence({
 				scrollTrigger: {
 					trigger: sectionRef.current,
 					start: 'top top',
-					end: '+=150%', // 스크롤 범위 축소 (검은 섹션 확장까지만)
-					scrub: prefersReduced ? false : 1,
+					end: '+=200%', // 타이핑을 위한 더 긴 스크롤 범위
+					scrub: prefersReduced ? false : 0.1, // 거의 즉시 반응
 					pin: true,
+					// snap 제거 - 사용자 스크롤에만 의존
+					onUpdate: (self) => {
+						// 스크롤 진행률을 상태로 업데이트
+						setScrollProgress(self.progress)
+					}
 				}
 			})
 
 			if (isMobile) {
 				// 모바일: 아래에서 위로 검은색 섹션 나타남 (1:9 비율)
 				gsap.set('.split', { gridTemplateRows: '100% 0%' })
-				gsap.set('.logo', { width: '200px' }) // 초기 큰 크기
-				tl.to('.split', { gridTemplateRows: '10% 90%', ease: 'none', duration: 1 })
-				tl.to('.logo', { width: '80px', ease: 'none', duration: 1 }, 0) // 동시에 로고 크기 축소
-				// 확장 완료 직후 타이핑 및 스크롤 락 시작
-				tl.add(() => startTypingOnce())
+				gsap.set('.logo', { width: '200px' })
+				
+				// 스크롤 기반 애니메이션 (매우 빠르게 튀어나오는 효과)
+				tl.to('.split', { 
+					gridTemplateRows: '10% 90%', 
+					ease: 'expo.out', // 지수적으로 빠른 시작과 급격한 감속
+					duration: 0.3 // 훨씬 짧은 지속시간
+				})
+				tl.to('.logo', { 
+					width: '80px', 
+					ease: 'expo.out', 
+					duration: 0.3
+				}, 0)
 			} else {
-				// 데스크톱: 오른쪽에서 왼쪽으로 검은색 섹션 나타남
+				// 데스크톱: 오른쪽에서 왼쪽으로 검은색 섹션 나타남 (1:9 비율)
 				gsap.set('.split', { gridTemplateColumns: '100% 0%' })
-				gsap.set('.logo', { width: '300px' }) // 초기 큰 크기
-				tl.to('.split', { gridTemplateColumns: '30% 70%', ease: 'none', duration: 1 })
-				tl.to('.logo', { width: '200px', ease: 'none', duration: 1 }, 0) // 동시에 로고 크기 축소
-				// 확장 완료 직후 타이핑 및 스크롤 락 시작
-				tl.add(() => startTypingOnce())
+				gsap.set('.logo', { width: '300px' })
+				
+				// 스크롤 기반 애니메이션 (매우 빠르게 튀어나오는 효과)
+				tl.to('.split', { 
+					gridTemplateColumns: '10% 90%', 
+					ease: 'expo.out', // 지수적으로 빠른 시작과 급격한 감속
+					duration: 0.3 // 훨씬 짧은 지속시간
+				})
+				tl.to('.logo', { 
+					width: '200px', 
+					ease: 'expo.out', 
+					duration: 0.3
+				}, 0)
 			}
 		}, sectionRef)
 		return () => ctx.revert()
-	}, [isMobile, startTypingOnce])
+	}, [isMobile])
+
+	// 검은 섹션이 보이기 시작하면 타이핑 시작 (스크롤 진행률 기준)
+	const shouldShowTyping = scrollProgress > 0.1
 
 	return (
 		<section ref={sectionRef} className="h-screen">
@@ -109,10 +94,11 @@ export default function ScrollSequence({
 					/>
 				</div>
 				<div ref={blackSectionRef} className={`${isMobile ? 'order-2' : 'right'} h-full w-full bg-black text-white flex items-start justify-start overflow-hidden cursor-none relative`}>
-					{typing && (
+					{shouldShowTyping && (
 						<MultiQuoteTyping
 							containerRef={blackSectionRef as RefObject<HTMLElement | null>}
 							className="w-full h-full flex items-start justify-start pt-[clamp(4rem,8vh,6rem)] pl-[clamp(2rem,6vw,4rem)]"
+							scrollProgress={scrollProgress} // 스크롤 진행률 전달
 						/>
 					)}
 					
@@ -147,6 +133,9 @@ export default function ScrollSequence({
 							</span>
 							<span className="text-xs text-white/60 tabular-nums">
 								y: {Math.round(y)}
+							</span>
+							<span className="text-xs text-white/60 tabular-nums">
+								progress: {Math.round(scrollProgress * 100)}%
 							</span>
 						</div>
 					)}

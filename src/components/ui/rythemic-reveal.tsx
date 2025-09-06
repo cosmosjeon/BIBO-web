@@ -123,7 +123,7 @@ function Rythem({
     <section
       ref={sectionRef}
       className={cn(
-        "text-8xl font-semibold h-fit flex-col justify-center items-center uppercase w-full",
+        "text-8xl font-semibold h-fit flex-col justify-center items-center w-full",
         className
       )}
     >
@@ -158,12 +158,10 @@ function Word({ children, className, ...props }: WordProps) {
 
 type PictureProps = React.ImgHTMLAttributes<HTMLImageElement>
 /**
- *Default:- className="h-full"
- *
+ * Default merge: keeps object-cover unless explicitly overridden.
  */
-
-function Picture({ ...props }: PictureProps) {
-  return <img className="aspect-[none] object-cover" {...props} />
+function Picture({ className, ...props }: PictureProps) {
+  return <img className={cn("aspect-[none] object-cover", className)} {...props} />
 }
 
 export { Rythem, Line, Word, Picture }
