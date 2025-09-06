@@ -55,7 +55,7 @@ const RevealText = ({
   href,
 }: HoverTextProps) => {
   const imageRef = useRef<HTMLImageElement>(null)
-  const quickToX = useRef<any>(null) // for smooth x movement
+  const quickToX = useRef<gsap.QuickToFunc | null>(null) // for smooth x movement
 
   const handleMouseEnter = () => {
     if (imageRef.current) {

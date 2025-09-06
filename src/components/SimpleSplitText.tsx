@@ -66,8 +66,12 @@ const SimpleSplitText: React.FC<SimpleSplitTextProps> = ({
     const elements = ref.current.querySelectorAll('.split-item')
     if (elements.length === 0) return
 
+    // Validate elements are still in DOM
+    const validElements = Array.from(elements).filter(el => el.parentNode)
+    if (validElements.length === 0) return
+
     // 초기 상태 설정
-    gsap.set(elements, from)
+    gsap.set(validElements, from)
 
     // ScrollTrigger로 애니메이션
     const startPct = (1 - threshold) * 100
@@ -89,20 +93,33 @@ const SimpleSplitText: React.FC<SimpleSplitTextProps> = ({
         end: 'bottom 20%',
         once: false,
         fastScrollEnd: true,
-        delay: 1.2 // 1.2초 지연 후 시작
+        onRefresh: () => {
+          // Revalidate elements on refresh to avoid stale references
+          const currentElements = ref.current?.querySelectorAll('.split-item')
+          if (!currentElements || currentElements.length === 0) {
+            tl.kill()
+          }
+        }
       }
     })
 
-    tl.to(elements, {
+    // 1.2초 지연 후 애니메이션 시작
+    tl.to(validElements, {
       ...to,
       duration,
       ease,
-      stagger: delay / 1000
+      stagger: delay / 1000,
+      delay: 1.2,
+      onComplete: () => {
+        // Clean up timeline after completion
+        tl.kill()
+      }
     })
 
   }, {
     dependencies: [text, delay, duration, ease, splitType, JSON.stringify(from), JSON.stringify(to), threshold, rootMargin, fontsLoaded],
-    scope: ref
+    scope: ref,
+    revertOnUpdate: true // Ensures proper cleanup when dependencies change
   })
 
   const renderContent = () => {
@@ -132,19 +149,19 @@ const SimpleSplitText: React.FC<SimpleSplitTextProps> = ({
 
   switch (tag) {
     case 'h1':
-      return <h1 ref={ref} style={style} className={classes}>{renderContent()}</h1>
+      return <h1 ref={ref as React.RefObject<HTMLHeadingElement>} style={style} className={classes}>{renderContent()}</h1>
     case 'h2':
-      return <h2 ref={ref} style={style} className={classes}>{renderContent()}</h2>
+      return <h2 ref={ref as React.RefObject<HTMLHeadingElement>} style={style} className={classes}>{renderContent()}</h2>
     case 'h3':
-      return <h3 ref={ref} style={style} className={classes}>{renderContent()}</h3>
+      return <h3 ref={ref as React.RefObject<HTMLHeadingElement>} style={style} className={classes}>{renderContent()}</h3>
     case 'h4':
-      return <h4 ref={ref} style={style} className={classes}>{renderContent()}</h4>
+      return <h4 ref={ref as React.RefObject<HTMLHeadingElement>} style={style} className={classes}>{renderContent()}</h4>
     case 'h5':
-      return <h5 ref={ref} style={style} className={classes}>{renderContent()}</h5>
+      return <h5 ref={ref as React.RefObject<HTMLHeadingElement>} style={style} className={classes}>{renderContent()}</h5>
     case 'h6':
-      return <h6 ref={ref} style={style} className={classes}>{renderContent()}</h6>
+      return <h6 ref={ref as React.RefObject<HTMLHeadingElement>} style={style} className={classes}>{renderContent()}</h6>
     default:
-      return <p ref={ref} style={style} className={classes}>{renderContent()}</p>
+      return <p ref={ref as React.RefObject<HTMLParagraphElement>} style={style} className={classes}>{renderContent()}</p>
   }
 }
 

@@ -48,19 +48,31 @@ export default function MultiQuoteTyping({
 			<div className="space-y-[clamp(3rem,6vh,4rem)]">
 				{QUOTES.map((quote, index) => {
 					const config = QUOTE_CONFIGS[index]
+					const isTypingComplete = scrollProgress >= (config.delay + config.duration)
+					
 					return (
 						<div 
 							key={index}
 							className="flex items-start"
 						>
-							<ScrollBasedText
-								text={quote}
-								scrollProgress={scrollProgress}
-								delay={config.delay}
-								duration={config.duration}
-								showCursor
-								className="tracking-wider text-[clamp(1rem,1.8vw,1.6rem)] leading-relaxed"
-							/>
+							{isTypingComplete ? (
+								<span className="group text-white relative block overflow-hidden whitespace-pre-line text-[clamp(1rem,1.8vw,1.6rem)] font-normal normal-case leading-relaxed tracking-wider cursor-pointer px-2 py-1">
+									{quote}
+									<span className="absolute inset-0 bg-white scale-x-0 origin-left transition-transform duration-300 ease-out group-hover:scale-x-100"></span>
+									<span className="absolute inset-0 px-2 py-1 text-black opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+										{quote}
+									</span>
+								</span>
+							) : (
+								<ScrollBasedText
+									text={quote}
+									scrollProgress={scrollProgress}
+									delay={config.delay}
+									duration={config.duration}
+									showCursor
+									className="tracking-wider text-[clamp(1rem,1.8vw,1.6rem)] leading-relaxed"
+								/>
+							)}
 						</div>
 					)
 				})}

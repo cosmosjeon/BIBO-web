@@ -27,15 +27,21 @@ function Rythem({
   // 요소들을 찾고 초기화
   useEffect(() => {
     if (!sectionRef.current) return
+    let isMounted = true
 
     const allLines = Array.from(sectionRef.current.querySelectorAll("p"))
     const allImages = Array.from(sectionRef.current.querySelectorAll("img"))
+
+    // Early return if component unmounted during async operations
+    if (!isMounted) return
 
     setTextElements(allLines)
     setImageElements(allImages)
 
     // 초기 상태 설정 - 텍스트와 이미지를 함께 처리
     allLines.forEach((line) => {
+      if (!isMounted || !line.parentNode) return // Check if still mounted and element exists
+
       const walker = document.createTreeWalker(
         line,
         NodeFilter.SHOW_TEXT,
@@ -49,6 +55,8 @@ function Rythem({
       }
       
       textNodes.forEach((textNode) => {
+        if (!isMounted || !textNode.parentNode) return // Safety check before DOM manipulation
+
         const text = textNode.textContent || ''
         const chars = text.split('')
         
@@ -66,12 +74,21 @@ function Rythem({
           }
         })
         
-        textNode.parentNode?.replaceChild(fragment, textNode)
+        // Only manipulate DOM if still mounted and parent exists
+        if (isMounted && textNode.parentNode) {
+          try {
+            textNode.parentNode.replaceChild(fragment, textNode)
+          } catch (error) {
+            console.warn('RythemicReveal: DOM manipulation failed, component may have unmounted', error)
+          }
+        }
       })
     })
 
     // 이미지 초기 상태
     allImages.forEach((img) => {
+      if (!isMounted || !img.parentElement) return // Safety check
+
       const parent = img.parentElement
       if (parent) {
         parent.style.overflow = 'hidden'
@@ -86,34 +103,51 @@ function Rythem({
       img.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
       img.style.opacity = '0'
     })
+
+    return () => {
+      isMounted = false
+    }
   }, [children, imgsWidth])
 
   // 스크롤 감지 및 애니메이션 실행
   useEffect(() => {
     if (!sectionRef.current) return
+    let isMounted = true
+    const timeouts: NodeJS.Timeout[] = []
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
+          if (!isMounted) return // Early exit if unmounted
+
           if (entry.isIntersecting) {
             const element = entry.target as HTMLElement
+
+            // Check if element still exists in DOM
+            if (!element.parentNode) return
 
             // 텍스트 애니메이션
             if (element.tagName === 'P') {
               const chars = element.querySelectorAll('.char-reveal')
               chars.forEach((char, index) => {
-                setTimeout(() => {
-                  (char as HTMLElement).style.opacity = '1'
+                const timeout = setTimeout(() => {
+                  if (isMounted && char.parentNode) {
+                    (char as HTMLElement).style.opacity = '1'
+                  }
                 }, index * 50)
+                timeouts.push(timeout)
               })
             }
 
             // 이미지 애니메이션
             if (element.tagName === 'IMG') {
-              setTimeout(() => {
-                element.style.transform = 'scaleX(1)'
-                element.style.opacity = '1'
+              const timeout = setTimeout(() => {
+                if (isMounted && element.parentNode) {
+                  element.style.transform = 'scaleX(1)'
+                  element.style.opacity = '1'
+                }
               }, 100)
+              timeouts.push(timeout)
             }
           }
         })
@@ -135,9 +169,11 @@ function Rythem({
     })
 
     return () => {
-      allElements.forEach((element) => {
-        observer.unobserve(element)
-      })
+      isMounted = false
+      // Clear all timeouts
+      timeouts.forEach(timeout => clearTimeout(timeout))
+      // Properly disconnect observer
+      observer.disconnect()
     }
   }, [textElements, imageElements, imgsWidth, positionToAnimation])
 

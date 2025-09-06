@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { Rythem, Line, Word, Picture } from '@/components/ui/rythemic-reveal'
+import { FlipLink } from '@/components/ui/flip-links'
 
 interface RythemicRevealSectionProps {
   isVisible?: boolean
@@ -49,7 +50,14 @@ export default function RythemicRevealSection({
         imgsWidth={150}
       >
         <Line className="flex mx-auto w-fit gap-3">
-          <Word>TWO KOREAN</Word>
+          <Word>
+            <FlipLink 
+              href="#"
+              className="group text-black relative block overflow-hidden whitespace-nowrap font-black uppercase hover:text-primary"
+            >
+              TWO KOREAN
+            </FlipLink>
+          </Word>
           <Word className="rounded-md inline-block overflow-hidden h-full pointer-events-none">
             <Picture
               className=""
@@ -60,22 +68,50 @@ export default function RythemicRevealSection({
         </Line>
 
         <Line className="flex mx-auto w-fit gap-3">
-          <Word>COLLEGE</Word>
+          <Word>
+            <FlipLink 
+              href="#"
+              className="group text-black relative block overflow-hidden whitespace-nowrap font-black uppercase hover:text-primary"
+            >
+              COLLEGE
+            </FlipLink>
+          </Word>
           <Word className="rounded-md inline-block overflow-hidden pointer-events-none">
             <Picture
               src="/images/rythemic/성대로고.jpg"
               alt="College life"
             />
           </Word>
-          <Word>STUDENTS</Word>
+          <Word>
+            <FlipLink 
+              href="#"
+              className="group text-black relative block overflow-hidden whitespace-nowrap font-black uppercase hover:text-primary"
+            >
+              STUDENTS
+            </FlipLink>
+          </Word>
         </Line>
 
         <Line className="flex mx-auto w-fit gap-3">
-          <Word>ON A JOURNEY</Word>
+          <Word>
+            <FlipLink 
+              href="#"
+              className="group text-black relative block overflow-hidden whitespace-nowrap font-black uppercase hover:text-primary"
+            >
+              ON A JOURNEY
+            </FlipLink>
+          </Word>
         </Line>
 
         <Line className="flex mx-auto w-fit gap-3">
-          <Word>TO BUILD A UNICORN</Word>
+          <Word>
+            <FlipLink 
+              href="#"
+              className="group text-black relative block overflow-hidden whitespace-nowrap font-black uppercase hover:text-primary"
+            >
+              TO BUILD A UNICORN
+            </FlipLink>
+          </Word>
           <Word className="rounded-md inline-block overflow-hidden pointer-events-none">
             <Picture
               src="/images/rythemic/유니콘.png"
