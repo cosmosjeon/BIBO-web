@@ -74,14 +74,6 @@ const SimpleSplitText: React.FC<SimpleSplitTextProps> = ({
     gsap.set(validElements, from)
 
     // ScrollTrigger로 애니메이션
-    const startPct = (1 - threshold) * 100
-    const marginMatch = /^(-?\d+(?:\.\d+)?)(px|em|rem|%)?$/.exec(rootMargin)
-    const marginValue = marginMatch ? parseFloat(marginMatch[1]) : 0
-    const marginUnit = marginMatch ? marginMatch[2] || 'px' : 'px'
-    const sign = marginValue === 0 ? '' : marginValue < 0 
-      ? `-=${Math.abs(marginValue)}${marginUnit}` 
-      : `+=${marginValue}${marginUnit}`
-    const start = `top ${startPct}%${sign}`
 
     // 부모 섹션 찾기
     const parentSection = ref.current?.closest('section')

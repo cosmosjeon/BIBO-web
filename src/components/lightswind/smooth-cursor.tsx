@@ -39,7 +39,7 @@ export interface SmoothCursorProps {
    * Container element to scope the custom cursor to.
    * When provided, listeners and cursor hiding apply only within this element.
    */
-  containerRef?: RefObject<HTMLElement>;
+  containerRef?: RefObject<HTMLDivElement | null>;
   /**
    * 배경 밝기에 따라 자동으로 흑/백 색상을 반전합니다.
    */
@@ -144,9 +144,7 @@ export function SmoothCursor({
   autoInvertByBackground = false,
   nativeCursorSelector = '[data-native-cursor]',
 }: SmoothCursorProps) {
-  const [isMoving, setIsMoving] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const [isClicking, setIsClicking] = useState(false);
   const [trail, setTrail] = useState<Position[]>([]);
   const [effectiveColor, setEffectiveColor] = useState<string>(color);
   const [mounted, setMounted] = useState(false);
@@ -170,7 +168,6 @@ export function SmoothCursor({
     damping: 35,
   });
 
-  const defaultCursor = <DefaultCursorSVG size={size} color={color} />;
   const cursorElement = cursor || (
     <DefaultCursorSVG size={size} color={effectiveColor} />
   );
@@ -316,10 +313,8 @@ export function SmoothCursor({
         previousAngle.current = currentAngle;
 
         scale.set(0.95);
-        setIsMoving(true);
         const timeout = setTimeout(() => {
           scale.set(1);
-          setIsMoving(false);
         }, 150);
         return () => clearTimeout(timeout);
       }
@@ -339,14 +334,12 @@ export function SmoothCursor({
 
     const handleMouseDown = () => {
       if (scaleOnClick) {
-        setIsClicking(true);
         scale.set(0.8);
       }
     };
 
     const handleMouseUp = () => {
       if (scaleOnClick) {
-        setIsClicking(false);
         scale.set(1);
       }
     };
@@ -397,6 +390,7 @@ export function SmoothCursor({
     onCursorEnter,
     onCursorLeave,
     autoInvertByBackground,
+    nativeCursorSelector,
   ]);
 
   if (disabled || !mounted || !isVisible) return null;

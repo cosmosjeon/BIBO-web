@@ -20,7 +20,6 @@ export default function RythemicRevealSection({
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger)
     const ctx = gsap.context(() => {
-      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
       
       // 섹션 2 Pin 임시 비활성화
       /*

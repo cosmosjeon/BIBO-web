@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { GripVertical, Github, Linkedin, Mail, MapPin, Monitor, Server } from "lucide-react";
+import { GripVertical, Github, Linkedin, Mail } from "lucide-react";
 
 function Feature() {
   const [inset, setInset] = useState<number>(50);
@@ -128,8 +128,6 @@ function Feature() {
     const profileData = isDark ? profileDataLeft : profileDataRight;
     const textColor = isDark ? 'text-white' : 'text-gray-900';
     const subtextColor = isDark ? 'text-gray-300' : 'text-gray-600';
-    const descColor = isDark ? 'text-gray-400' : 'text-gray-700';
-    const skillBg = isDark ? 'bg-blue-500/20 border-blue-400/30 text-blue-200' : 'bg-green-100 border-green-300 text-green-700';
     const socialBg = isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-100 hover:bg-gray-200';
 
     return (

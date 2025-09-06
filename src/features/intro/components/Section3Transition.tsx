@@ -26,7 +26,6 @@ export default function Section3Transition() {
 	useEffect(() => {
 		gsap.registerPlugin(ScrollTrigger)
     const ctx = gsap.context(() => {
-			const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 			
 			// 초기 상태 설정 - 검은 오버레이를 화면 아래에 숨김
 			gsap.set(blackOverlayRef.current, {

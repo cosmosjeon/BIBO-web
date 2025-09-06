@@ -1,5 +1,6 @@
 "use client"
 import { RefObject, useEffect, useRef, useState } from "react"
+import Image from "next/image"
 import { cn } from "../../lib/utils"
 
 /**
@@ -245,18 +246,24 @@ function Word({ children, className, ...props }: WordProps) {
   )
 }
 
-type PictureProps = React.ImgHTMLAttributes<HTMLImageElement>
+type PictureProps = {
+  src: string;
+  className?: string;
+  alt?: string;
+}
 /**
  *Default:- className="h-full"
  *
  */
 
-function Picture({ className, ...props }: PictureProps) {
+function Picture({ className, src, alt = "" }: PictureProps) {
   return (
-    <img 
+    <Image 
+      src={src}
+      alt={alt}
+      width={800}
+      height={600}
       className={cn("aspect-[none] object-cover h-full w-full", className)} 
-      alt=""
-      {...props} 
     />
   )
 }
