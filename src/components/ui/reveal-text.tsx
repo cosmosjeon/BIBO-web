@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useRef, useEffect } from "react"
+import React, { useRef } from "react"
 import { gsap } from "gsap"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
