@@ -18,3 +18,5 @@ Key Conventions
 1. Every component and page must work seamlessly on both small and large screens.
 2. Always validate responsiveness before finalizing any implementation.
 3. Favor performance optimizations that maintain responsiveness across devices.
+
+# 특정 코드를 수정할때 다른 파트, 섹션에 영향을 끼칠 수 있는지 철저히 검토하시오

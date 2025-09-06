@@ -181,14 +181,14 @@ const TextType = ({
 		variableSpeed,
 		onSentenceComplete,
 		stopAtEnd,
-		onTypingComplete
+		onTypingComplete,
+		getRandomSpeed
 	])
 
 
 	const shouldHideCursor =
 		hideCursorWhileTyping && (currentCharIndex < textArray[currentTextIndex].length || isDeleting)
 
-	const isTypingComplete = !isDeleting && currentCharIndex >= textArray[currentTextIndex].length
 
 	return createElement(
 		Component,

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, memo, useMemo, useEffect } from "react"
+import { useState, memo, useMemo, useEffect, useCallback } from "react"
 import { debounce } from "lodash"
 import { AnimationOptions, motion, stagger, useAnimate } from "motion/react"
 
@@ -32,12 +32,12 @@ const VariableFontHoverByLetter = memo(({
   const [scope, animate] = useAnimate()
   const [isHovered, setIsHovered] = useState(false)
 
-  const mergeTransition = (baseTransition: AnimationOptions) => ({
+  const mergeTransition = useCallback((baseTransition: AnimationOptions) => ({
     ...baseTransition,
     delay: stagger(staggerDuration, {
       from: staggerFrom,
     }),
-  })
+  }), [staggerDuration, staggerFrom])
 
   // Create stable debounced handlers and cancel on unmount to avoid leaks
   const hoverStart = useMemo(() => debounce(() => {
@@ -48,7 +48,7 @@ const VariableFontHoverByLetter = memo(({
       { fontVariationSettings: toFontVariationSettings },
       mergeTransition(transition)
     )
-  }, 50, { leading: true, trailing: true }), [isHovered, toFontVariationSettings, transition, animate])
+  }, 50, { leading: true, trailing: true }), [isHovered, toFontVariationSettings, transition, animate, mergeTransition])
 
   const hoverEnd = useMemo(() => debounce(() => {
     setIsHovered(false)
@@ -57,7 +57,7 @@ const VariableFontHoverByLetter = memo(({
       { fontVariationSettings: fromFontVariationSettings },
       mergeTransition(transition)
     )
-  }, 50, { leading: true, trailing: true }), [fromFontVariationSettings, transition, animate])
+  }, 50, { leading: true, trailing: true }), [fromFontVariationSettings, transition, animate, mergeTransition])
 
   useEffect(() => {
     return () => {

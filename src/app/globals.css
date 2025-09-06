@@ -154,4 +154,45 @@
   .split {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
+  
+  /* 섹션 3 텍스트 색상 및 opacity 강제 적용 */
+  .section3-content {
+    opacity: 1 !important;
+  }
+  
+  .section3-content * {
+    color: white !important;
+  }
+  
+  .section3-content h1,
+  .section3-content h2,
+  .section3-content h3,
+  .section3-content p {
+    color: white !important;
+  }
+  
+  /* 초기 상태에서 검은색 섹션 완전히 숨김 */
+  .split .right {
+    overflow: hidden;
+  }
+  
+  /* 초기 상태 설정 - GSAP 애니메이션을 방해하지 않도록 !important 제거 */
+  .split {
+    grid-template-rows: 100% 0%;
+    grid-template-columns: 100% 0%;
+  }
+  
+  /* 모바일에서 초기 상태 설정 */
+  @media (max-width: 767px) {
+    .split {
+      grid-template-rows: 100% 0%;
+    }
+  }
+  
+  /* 데스크톱에서 초기 상태 설정 */
+  @media (min-width: 768px) {
+    .split {
+      grid-template-columns: 100% 0%;
+    }
+  }
 }
