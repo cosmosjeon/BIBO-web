@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { Feature } from '@/components/ui/feature-with-image-comparison'
+import { ProfileCards } from '@/components/ui/profile-cards'
 import TrueFocus from '@/components/ui/true-focus'
 
 export default function Section4Feature() {
@@ -40,7 +40,7 @@ export default function Section4Feature() {
       ref={sectionRef}
       className="relative z-30 bg-black text-white cursor-auto"
     >
-      <div ref={contentRef} className="mx-auto w-full max-w-6xl px-6 md:px-8 lg:px-12 py-24 pb-48 md:py-20 lg:py-24">
+      <div ref={contentRef} className="mx-auto w-full max-w-7xl px-6 md:px-8 lg:px-12 py-24 pb-48 md:py-20 lg:py-24">
         {/* 제목 + TrueFocus 애니메이션 */}
         <div className="mb-24 md:mb-20 lg:mb-24">
           <TrueFocus
@@ -53,12 +53,9 @@ export default function Section4Feature() {
           />
         </div>
 
-        {/* 카드 컨테이너 안에 기존 슬라이더 애니메이션 유지 */}
-        <div
-          className="relative rounded-2xl overflow-hidden shadow-2xl shadow-white/20 ring-2 ring-white/20 bg-transparent h-[750px] sm:h-[520px] lg:h-[620px] cursor-auto backdrop-blur-sm border border-white/30"
-          data-native-cursor
-        >
-          <Feature />
+        {/* 두 개의 프로필 카드 레이아웃 (스와이프 제거) */}
+        <div className="relative rounded-2xl bg-transparent cursor-auto">
+          <ProfileCards />
         </div>
       </div>
     </section>

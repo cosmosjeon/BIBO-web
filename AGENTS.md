@@ -4,14 +4,17 @@
 
 ## Project Structure & Module Organization
 - `src/app/`: Next.js App Router 엔트리 (`layout.tsx`, `page.tsx`, `globals.css`).
-- `src/components/`: 재사용 UI 컴포넌트. `ui/*`에는 프로젝트 내 공용 UI 프리미티브가 위치합니다.
+- `src/app/test-preview/*`: 데모/프리뷰 라우트 모음 (예: `bg-pattern-demo`, `liquid-text-demo`).
+- `src/components/`: 재사용 UI 컴포넌트. `ui/*`에는 공용 UI 프리미티브가 위치합니다.
+- `src/components/lightswind/*`: 커스텀 커서 스코프/렌더러 등 인터랙션 유틸.
+- `src/components/fancy/*`: 가변 폰트 등 실험적 인터랙션.
 - `src/features/`: 기능(섹션) 단위 컴포넌트. 예: `intro/components/*`는 인트로 애니메이션 관련.
 - `src/hooks/`: 커스텀 훅. 브라우저 API/GSAP 사용 시 클라이언트 컴포넌트에서만 호출.
 - `src/lib/`: 유틸리티. 예: `cn()` Tailwind 클래스 병합. `@/*` 경로 별칭 사용.
 - `src/types/`: 타입 정의. 디바이스, 공용 타입 등.
 - `public/`: 정적 에셋(이미지, 아이콘, 폰트 등).
 
-참고: 기존 가이드의 `scrolltrigger-svg-text-mask/` 폴더 언급은 현재 저장소에는 존재하지 않으므로 제외했습니다.
+참고: 과거 문서에 있던 `scrolltrigger-svg-text-mask/` 폴더는 본 저장소에는 없습니다.
 
 ## Build, Dev, Lint
 - `npm run dev`: 로컬 개발 서버(Turbopack) 시작. http://localhost:3000 접속.
@@ -19,15 +22,18 @@
 - `npm run start`: 프로덕션 빌드 서빙.
 - `npm run lint`: ESLint 실행. 필요 시 `npx eslint . --fix`로 자동 수정.
 
-미리보기: 기본 라우트(`/`)에서 인트로 시퀀스가 렌더링됩니다. 별도 `/test-preview` 라우트는 없습니다.
+미리보기: 기본 라우트(`/`)에서 인트로 시퀀스가 렌더링됩니다.
+프리뷰 라우트:
+- `/test-preview/bg-pattern-demo`
+- `/test-preview/liquid-text-demo`
 
 ## Coding Style & Naming
 - TypeScript: `strict: true`. 명시적 타입 사용, `any` 지양.
 - ESLint: Flat config(`eslint.config.mjs`), `next/core-web-vitals`, `next/typescript` 기반. 무시 경로는 `.next`, `out`, `build`, `node_modules` 등.
-- 컴포넌트: export 이름은 PascalCase. 파일명은 가급적 kebab-case를 권장(예: `variable-font-and-cursor.tsx`).
-- 훅: 파일명은 `use-*.ts` 형태를 권장하고 export는 `useXyz`. 현재 `src/hooks/useDevice.ts`처럼 camelCase 파일이 혼재하므로 신규 추가는 kebab-case로 통일하고, 기존 파일은 점진적으로 정리.
-- 스타일: Tailwind CSS v4. 클래스 조합은 `src/lib/utils.ts`의 `cn()` 사용 권장.
-- 클라이언트 코드: 훅, GSAP, 브라우저 API 사용 시 파일 상단에 `"use client"` 추가.
+- 컴포넌트: export 이름은 PascalCase. 파일명은 kebab-case 권장(예: `variable-font-and-cursor.tsx`).
+- 훅: 파일명은 `use-*.ts` 형태 권장, export는 `useXyz`. 신규 파일은 kebab-case로 통일(기존 camelCase는 점진 정리).
+- 스타일: Tailwind CSS v4. 클래스 조합은 `src/lib/utils.ts`의 `cn()` 우선 사용.
+- 클라이언트/서버 경계: 브라우저 API/훅/GSAP 사용 시에만 파일 상단에 `"use client"`를 명시. 그 외는 기본 서버 컴포넌트 유지.
 - 임포트 경로: `@/*` 별칭 사용(설정: `tsconfig.json`의 `paths`). 상대경로 난립 지양.
 
 ## UI/Features 패턴
@@ -36,22 +42,38 @@
   - 디바이스 판별은 `useDevice()` 훅(`src/hooks/useDevice.ts`) 사용. SSR 안전 기본값을 유지하고 리사이즈 이벤트로 동기화.
 - 이미지: `next/image` 사용 권장. 외부 도메인은 `next.config.ts`의 `images.remotePatterns`에 등록.
 
+- 커서 스코프: `src/components/lightswind/cursor-scope.tsx`를 통해 커스텀 커서를 섹션 단위로 스코프합니다.
+  - 네이티브 커서를 사용해야 하는 영역은 컨테이너에 `data-native-cursor` 속성을 부여합니다.
+  - 커서 색상 자동 반전(`autoInvertByBackground`) 기능이 있어 배경이 복잡한 경우에도 가독성을 유지합니다.
+
 ## Animations & GSAP
 - 플러그인 등록: 필요한 범위에서 `gsap.registerPlugin(...)`을 수행하고, `gsap.context(...)`와 함께 사용.
 - 클린업: `const ctx = gsap.context(...); return () => ctx.revert()` 패턴으로 메모리 누수 방지.
 - 접근성: `prefers-reduced-motion` 대응. 스크럽/애니메이션 강도 낮춤 또는 비활성화 처리.
 - 성능: 스크롤/포인터 핸들러는 `requestAnimationFrame` 등으로 스로틀링(예: `use-mouse-position.ts`). DOM 참조는 갱신 시 재검증.
 
+### Motion 라이브러리
+- 애니메이션/모션은 `motion` 패키지(`import { motion } from 'motion/react'`)로 통일합니다.
+- `framer-motion`과의 혼용은 번들 중복을 야기할 수 있으므로 신규 구현에서는 `motion`만 사용합니다.
+
 ## Tailwind CSS v4
 - 구성: `postcss.config.mjs`에서 `@tailwindcss/postcss` 사용. 커스텀 토큰은 `globals.css`의 `@theme inline`에 정의.
 - 프리셋/레이어: `@import "tailwindcss";` 후 유틸리티 사용. 전역 토큰(`--color-*, --radius-*`) 및 다크 모드 토큰 정의.
 - 애니메이션: `tw-animate-css` 플러그인 사용 가능. 무분별한 전역 애니메이션은 지양.
+
+전역 스타일 가이드:
+- 특정 섹션 강제 스타일링(예: `!important` 전역 셀렉터)은 지양하고, 컴포넌트 스코프 클래스 기반으로 스타일을 한정합니다.
+- 레이아웃/애니메이션 초기 상태는 가급적 GSAP `set` 또는 컴포넌트 스코프 CSS로 제한합니다.
 
 ## Testing Guidelines
 - 현재 테스트 러너는 구성되어 있지 않습니다. 추가 시 권장:
   - Unit: Vitest + React Testing Library (`*.test.ts(x)`), 구현 파일과 최대한 근접 배치.
   - E2E: Playwright(애니메이션/인터랙션 확인).
 - 테스트 위치: 기능별 폴더에 동거 또는 `src/__tests__/` 사용.
+
+행동 중심 테스트 권장:
+- 구현 세부가 아닌 동작 결과를 검증합니다(사용자 시나리오/상태 변화 중심).
+- 애니메이션의 시간 의존성은 `prefers-reduced-motion` 모드로 분기해 결정적 테스트를 지향합니다.
 
 ## Commit & PR
 - 커밋 메시지: 명령형/간결. 예: `feat(intro): add MultiQuoteTyping component`.
@@ -65,17 +87,25 @@
 - 시맨틱 마크업: 헤딩/문단 등 적절한 태그 사용. 이미지 `alt` 필수.
 - SSR 안전: 브라우저 전역(`window`, `document`) 접근은 `useEffect` 이후로 제한하거나 안전 가드 적용.
 
+추가 가이드:
+- 링크/인터랙티브 요소는 `:focus-visible` 스타일을 제공하고 키보드 내비게이션을 보장합니다.
+- Hover 미리보기 이미지(예: `RevealText`)의 `alt`는 의미 있는 설명을 제공합니다.
+
 ## Security & Configuration
 - 환경변수: `.env.local` 사용, `.env*` 커밋 금지. 클라이언트 노출이 필요한 키는 `NEXT_PUBLIC_*` 접두사.
 - 서버-클라이언트 경계: 시크릿은 서버 컴포넌트/RSC/API Routes로 한정. 클라이언트 번들에 포함 금지.
 
+이미지 도메인:
+- 외부 이미지는 `next.config.ts`의 `images.remotePatterns`에 등록합니다. 기본적으로 `picsum.photos`가 허용되어 있습니다.
+
 ## 빠른 시작 가이드
 1) `npm install`
 2) `npm run dev` 후 http://localhost:3000 접속
-3) 인트로(스크롤 시퀀스/리빌) 확인. 애니메이션 변경 시 관련 feature 컴포넌트만 수정하고 `DeviceRenderer` 패턴 유지
+3) 기본 인트로(스크롤 시퀀스/리빌) 확인 → 상호작용/애니메이션 변경은 관련 feature 컴포넌트만 수정하고 `DeviceRenderer` 패턴 유지
+4) 데모 확인: `/test-preview/bg-pattern-demo`, `/test-preview/liquid-text-demo`
 
 ## Cursor Rules(원문 수록 및 준수 선언)
-다음 규칙들은 `.cursor/rules`에 정의된 팀 규칙입니다. 본 저장소 작업 시 항상 준수합니다. 일부 규칙은 Next.js App Router 구조(서버 컴포넌트 존재)와 충돌할 수 있으므로, 실제 적용 시 빌드 가능성과 프레임워크 제약을 우선 확인합니다. 애니메이션/상호작용 UI는 반드시 클라이언트 컴포넌트에서 구현합니다.
+다음 규칙들은 `.cursor/rules`에 정의된 팀 규칙입니다. 본 저장소 작업 시 항상 준수합니다. 다만 Next.js App Router 구조상 서버/클라이언트 컴포넌트가 공존하므로, 규칙이 충돌할 경우 빌드 가능성과 프레임워크 제약을 우선합니다. 특히 애니메이션/상호작용 UI, 브라우저 API, 훅 사용 시에만 클라이언트 컴포넌트를 사용합니다.
 
 ### .cursor/rules/global.mdc
 

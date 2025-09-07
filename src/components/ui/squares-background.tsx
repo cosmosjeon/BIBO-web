@@ -26,6 +26,7 @@ export function Squares({
   const numSquaresX = useRef<number>(0)
   const numSquaresY = useRef<number>(0)
   const gridOffset = useRef({ x: 0, y: 0 })
+  const resizeObserver = useRef<ResizeObserver | null>(null)
   const [hoveredSquare, setHoveredSquare] = useState<{
     x: number
     y: number
@@ -47,6 +48,16 @@ export function Squares({
       numSquaresX.current = Math.ceil(canvas.width / squareSize) + 1
       numSquaresY.current = Math.ceil(canvas.height / squareSize) + 1
     }
+
+    // Set up ResizeObserver to watch for container size changes
+    resizeObserver.current = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.target === canvas) {
+          resizeCanvas()
+        }
+      }
+    })
+    resizeObserver.current.observe(canvas)
 
     window.addEventListener("resize", resizeCanvas)
     resizeCanvas()
@@ -167,6 +178,9 @@ export function Squares({
       window.removeEventListener("resize", resizeCanvas)
       canvas.removeEventListener("mousemove", handleMouseMove)
       canvas.removeEventListener("mouseleave", handleMouseLeave)
+      if (resizeObserver.current) {
+        resizeObserver.current.disconnect()
+      }
       if (requestRef.current) {
         cancelAnimationFrame(requestRef.current)
       }
